@@ -4,7 +4,7 @@ from PyPDF2 import PdfFileMerger
 import subprocess
 from docx.shared import Cm
 import comtypes.client
-
+import sys
 from shutil import copy2, copytree, rmtree, move
 import pathlib
 import requests
@@ -58,13 +58,14 @@ def update_toc(docx_file):
         print('TOC should have been updated.')
     else:
         print('TOC has not been updated for sure...')
-    doc.Save()
-    word.Close()
+    print(docx_file)
+    doc.SaveAs(docx_file,FileFormat=16)
+    doc.Close(SaveChanges=True)
+    # word.Close()
     word.Quit()
 
 
 def replace_word(path, cp_name, position, industry, logo):
-    print("DOC PATH", path)
     doc = Document(path)
     header = doc.sections[0].header
 
@@ -121,6 +122,7 @@ def combine_word_documents(files, merged_name):
 
 
 def merged_docx(files, merged_name):
+    print(files)
     master = Document()
     composer = Composer(master)
     for i in files:
@@ -132,7 +134,8 @@ def merged_docx(files, merged_name):
         i.right_margin = Cm(1.5)
 
     new_doc.save(merged_name)
-    update_toc(merged_name)
+
+    # update_toc(merged_name)
     return merged_name
 
 
@@ -154,9 +157,8 @@ def convert_pptx_to_pdf(src, dst):
 
 
 def convert_to_pdf(src, dst):
-
-    print("SRC", src, dst)
-    dst = dst[:-4] + "pdf"
+    
+    dst=dst.replace("docx","pdf" )
     word = comtypes.client.CreateObject('Word.Application')
     word.Visible = False
     #word.DisplayAlerts = False
@@ -181,7 +183,6 @@ def merge_pdf(pdfs, dst):
 
     with open(dst, 'wb') as fout:
         merger.write(fout)
-    update_toc(dst)
 
 
 if __name__ == '__main__':
@@ -278,11 +279,11 @@ if __name__ == '__main__':
         now_only_files = [f for f in listdir(
             new_dir) if isfile(join(new_dir, f))]
 
-        print("now only", now_only_files)
+
         only_files_docx = [f for f in now_only_files if "docx" in f]
-        print("111111111", only_files_docx)
+
         only_files_docx = [f for f in only_files_docx if f[:2] != "~$"]
-        print("222222222222", only_files_docx)
+
         study_file = [f for f in only_files_docx if "Study" in f]
         workbook_file = [f for f in only_files_docx if "Workbook" in f]
         workbook_file.sort()
@@ -292,7 +293,6 @@ if __name__ == '__main__':
         study_file.sort()
         # repalce method
         for i in only_files_docx:
-            print("iii2", i)
             replace_word(os.path.join(new_dir, i),
                          cp_name, position, industry, logo)
 
@@ -318,14 +318,12 @@ if __name__ == '__main__':
         print(
             f"========== MERGING: Study Guide–{cp_name} {position} Interview preparation.pdf... ====================")
         for i in study_list:
-            print("iiiii", i, os.path.join(new_dir, os.path.basename(i)))
             convert_to_pdf(i, os.path.join(new_dir, os.path.basename(i)))
-
         merge_pdf(pdf_study_list, merged_study_pdf)
 
         print(
             f"========== MERGING: Study Guide–{cp_name} {position} Interview preparation.docx... ====================")
-        _study_path = merged_docx(
+        merged_docx(
             study_list, merged_study)
 
         print(
