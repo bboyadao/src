@@ -1,0 +1,6 @@
+company,logo,sector,industry,position,price of study guide,price of course,questionsandanswers,interviewprocess
+Amazon,https://media.glassdoor.com/sqll/6036/amazon-squarelogo-1505166959541.png,Information Technology,Internet Commerce,Fulfillment Associate,14.99,24.99,amazon_operations,amazon
+Accenture,https://media.glassdoor.com/sqll/4138/accenture-squarelogo-1495126359239.png,Information Technology,IT Services,Analyst,14.99,24.99,consulting,consulting
+Apple,https://media.glassdoor.com/sqll/1138/apple-squarelogo-1485292862952.png,Information Technology,Computer Hardware and Software,Specialist ,14.99,24.99,sales_customerservice,sales_customerservice
+Bank of America,https://media.glassdoor.com/sqll/8874/bank-of-america-squarelogo-1453269130589.png,Finance,Banks and Credit Unions,Customer Service Representative,14.99,24.99,sales_customerservice,sales_customerservice
+Best Buy,https://media.glassdoor.com/sqll/97/best-buy-squarelogo.png,Retail,Consumer Electronics and Appliances Stores,Customer Service Specialist,14.99,24.99,sales_customerservice_store,store
