@@ -218,6 +218,44 @@ def convert_to_pdf(src, dst):
     word.Quit()
     return True
 
+def replace_ppxt(path, cp_name, position, industry, logo):
+    replace_word=f'''
+
+Sub findAndReplacecp_name()
+Dim sld As Slide
+Set sld = ActivePresentation.Slides(1)
+Dim shp As Shape
+For Each shp In sld.Shapes
+If shp.HasTextFrame Then
+    If shp.TextFrame.HasText Then
+        shp.TextFrame.TextRange.Text = Replace(shp.TextFrame.TextRange.Text, "[Position]", "cccccccc")
+    End If
+End If
+Next shp
+End Sub
+    '''
+    word_toc = comtypes.client.CreateObject("PowerPoint.Application")
+    doc_toc = word_toc.Documents.Open(path)
+    wordModule = doc_toc.VBProject.VBComponents.Add(1)
+    wordModule.CodeModule.AddFromString(replace_word)
+    word_toc.Application.Run("Multi_FindReplace")
+    doc_toc.Save()
+    doc_toc.Close()
+    word_toc.Quit()
+
+
+    word = comtypes.client.CreateObject('Word.Application')
+    word.Visible = False
+    doc = word.Documents.Open(src)
+    doc.SaveAs(dst, FileFormat=wdFormatPDF)
+    doc.Close()
+    word.Quit()
+    return True
+
+
+
+
+
 
 def create_sys_temp_dir(files, sys_temp_dir, cp_name, position, industry, logo):
     list_file = []
@@ -422,6 +460,9 @@ if __name__ == '__main__':
                     continue
                 else:
                     os.remove(os.path.join(new_dir, i))
+
+
+
         print("========== Converting Powerpoints to pdf")
         pptx_file = os.path.join(
             new_dir, "Course", "Slides - Coursetake Interview Preparation.pptx")
@@ -429,6 +470,8 @@ if __name__ == '__main__':
             new_dir, "Course", f"Slides – {cp_name} {position} Interview preparation.pptx")
         os.rename(pptx_file, pptx_to)
 
+        # replace_ppxt(pptx_to, cp_name, position, industry, logo)
+        
         convert_pptx_to_pdf(pptx_to, os.path.join(
             parent_dir, "Course", f"Slides – {cp_name} {position} Interview preparation.pdf"))
 
