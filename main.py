@@ -40,21 +40,7 @@ onlyfiles = [f for f in listdir(templates) if isfile(join(templates, f))]
 
 onlyfolder = [f for f in listdir(templates) if not isfile(join(templates, f))]
 
-# def convert_to_pdf(src, dst):
-#     p = subprocess.Popen(["soffice", "--headless", "--convert-to", "pdf",
-#                           src, "--outdir", dst])
-#     (output, err) = p.communicate()
-#     p_status = p.wait()
 
-
-# def merge_pdf(pdfs, dst):
-#     merger = PdfFileMerger()
-#     for pdf in pdfs:
-#         merger.append(open(pdf, 'rb'))
-#
-#     with open(dst, 'wb') as fout:
-#         merger.write(fout)
-#
 def update_toc(docx_file):
     word = comtypes.client.CreateObject("Word.Application")
     doc = word.Documents.Open(docx_file)
@@ -63,7 +49,7 @@ def update_toc(docx_file):
 
     if toc_count > 0:
         toc = doc.TablesOfContents(1)
-        
+
         toc.UpdatePageNumbers
         toc.Update
         time.sleep(10)
@@ -74,7 +60,6 @@ def update_toc(docx_file):
     doc.Save()
     doc.SaveAs(docx_file, FileFormat=16)
     doc.Close(SaveChanges=True)
-    # word.Close()
     word.Quit()
 
 
@@ -105,10 +90,8 @@ Sub NewDocWithCode()
       "Loop " & vbLf & _
       "Application.ScreenUpdating = True" & vbLf & _
     "End Sub"
-   
+
 End Sub
-
-
     '''
     macr2 = """
     Sub Macro1()
@@ -116,8 +99,8 @@ End Sub
     Selection.Delete Unit:=wdCharacter, Count:=1
     End Sub
     """
-    
-    update_toc_macro='''
+
+    update_toc_macro = '''
 Sub Update_toc()
     Dim t As TableOfContents
     For Each t In ActiveDocument.TablesOfContents
@@ -125,8 +108,6 @@ Sub Update_toc()
     Next t
     ActiveDocument.Fields.Update
 End Sub
-
-
      '''
     word = comtypes.client.CreateObject("Word.Application")
     doc = word.Documents.Open(clone)
@@ -145,9 +126,6 @@ End Sub
     wordModule = doc.VBProject.VBComponents.Add(1)
     wordModule.CodeModule.AddFromString(macro)
 
-    
-
-
     word.Application.Run("NewDocWithCode")
     time.sleep(1)
     word.Application.Run("Mergedocuments")
@@ -157,7 +135,6 @@ End Sub
     doc.Close()
     word.Quit()
 
-
     word_toc = comtypes.client.CreateObject("Word.Application")
     doc_toc = word_toc.Documents.Open(merged_name)
     wordModule = doc_toc.VBProject.VBComponents.Add(1)
@@ -166,7 +143,6 @@ End Sub
     doc_toc.SaveAs(merged_name, FileFormat=16)
     doc_toc.Close()
     word_toc.Quit()
-
 
     _path = os.path.dirname(clone)
     _files = [f for f in listdir(_path) if isfile(join(_path, f))]
@@ -236,7 +212,6 @@ def convert_to_pdf(src, dst):
     dst = dst.replace("docx", "pdf")
     word = comtypes.client.CreateObject('Word.Application')
     word.Visible = False
-    # word.DisplayAlerts = False
     doc = word.Documents.Open(src)
     doc.SaveAs(dst, FileFormat=wdFormatPDF)
     doc.Close()
@@ -244,8 +219,8 @@ def convert_to_pdf(src, dst):
     return True
 
 
-def create_sys_temp_dir(files, sys_temp_dir,cp_name, position, industry, logo):
-    list_file=[]
+def create_sys_temp_dir(files, sys_temp_dir, cp_name, position, industry, logo):
+    list_file = []
     for i, j in enumerate(files):
 
         a = f"{i}-{os.path.basename(j)}"
@@ -254,13 +229,14 @@ def create_sys_temp_dir(files, sys_temp_dir,cp_name, position, industry, logo):
 
             copy2(j, os.path.join(sys_temp_dir, a))
             copy2(j, os.path.join(sys_temp_dir, clone))
-            replace_word(os.path.join(sys_temp_dir, clone),cp_name, position, industry, logo)
+            replace_word(os.path.join(sys_temp_dir, clone),
+                         cp_name, position, industry, logo)
 
         else:
             copy2(j, os.path.join(sys_temp_dir, a))
         list_file.append(os.path.join(sys_temp_dir, a))
-    
-    return (sys_temp_dir,list_file)
+
+    return (sys_temp_dir, list_file)
 
 
 if __name__ == '__main__':
@@ -321,41 +297,33 @@ if __name__ == '__main__':
             _qa) if not isfile(join(templates, f))]
         img = [f for f in listdir(
             _img) if not isfile(join(templates, f))]
-        print("==========PREPERING TOCOPY====================")
+        print("========== Copying Template Files for " + cp_name)
 
         for i in cp_detail_word:
             if cp_name.lower() in i.lower():
                 copy2(os.path.join(_cp_detail, i), temp_dir)
-                print(f"{cp_name} copied detail")
 
         for i in industry_word:
             if industry.lower() in i.lower():
                 copy2(os.path.join(_industry, i), temp_dir)
-                print(f"{cp_name} copied industry")
 
         for i in interview_process_word:
             if interviewprocess.lower() in i.lower():
                 copy2(os.path.join(_interview_process, i), temp_dir)
-                print(f"{cp_name} copied interviewprocess")
 
         for i in jd_word:
 
             if f"{cp_name} {position}.docx".lower() == i.lower():
                 copy2(os.path.join(_jd, i), temp_dir)
-                print(f"{cp_name} copied jd_word")
 
         for i in qa_word:
             if f"{questionsandanswers}.docx".lower() == i.lower():
                 copy2(os.path.join(_qa, i), temp_dir)
-                print(f"{cp_name} copied qa_word")
 
         for i in img:
             if f"{cp_name} {position}.jpg".lower() == i.lower():
                 copy2(os.path.join(_img, i), os.path.join(
                     temp_dir, "Images"))
-                print(f"{cp_name} copied img")
-
-        print("==========COPY DONE====================")
 
         now_only_files = [f for f in listdir(
             new_dir) if isfile(join(new_dir, f))]
@@ -371,7 +339,6 @@ if __name__ == '__main__':
         study_list = []
         workbook_list = []
         study_file.sort()
-        # repalce method
 
         study_file.insert(1, f"{interviewprocess}.docx")
         study_file.insert(3, f"{industry}.docx")
@@ -392,32 +359,29 @@ if __name__ == '__main__':
 
         pdf_study_list = [i.replace("docx", "pdf") for i in study_list]
 
-        (list_temp_dir,list_file) = create_sys_temp_dir(
-            study_list, os.path.join(temp_dir, "sys_temp_dir"),cp_name, position, industry, logo)
+        (list_temp_dir, list_file) = create_sys_temp_dir(
+            study_list, os.path.join(temp_dir, "sys_temp_dir"), cp_name, position, industry, logo)
         _stu = os.path.join(
             temp_dir, f"Study Guide–{cp_name} {position} Interview preparation.docx")
         print(
-            f"========== MERGING: {_stu}... ====================")
-        print(f"== == == == == MERGING: Macro")
-
+            f"========== Merging Templates into: Study Guide–{cp_name} {position} Interview preparation.docx")
+        print("========== Replacing words...")
         for i in list_file:
-            replace_word(i,cp_name, position, industry, logo)
-            
+            replace_word(i, cp_name, position, industry, logo)
+
         list_files_in_temp = merged_by_macro(os.path.join(
             temp_dir, "sys_temp_dir", "copy_template.docx"), merged_study)
-        
+
         # replace_word(os.path.join(new_dir, _stu),
-                     # cp_name, position, industry, logo)
+        # cp_name, position, industry, logo)
         # update_toc(_stu)
         print(
-            f"========== MERGING: Study Guide–{cp_name} {position} Interview preparation.pdf... ====================")
+            f"========== Creating PDF: Study Guide–{cp_name} {position} Interview preparation.pdf")
 
         convert_to_pdf(merged_study, merged_study_pdf)
 
         pathlib.Path(os.path.join(temp_dir, "sys_temp_dir")
                      ).mkdir(parents=True, exist_ok=True)
-        print(
-            f"========== MERGING: Done ====================")
 
         copy2(merged_study_pdf, os.path.join(
             parent_dir, "Course", f'Study Guide–{cp_name} {position} Interview preparation.pdf'))
@@ -435,22 +399,20 @@ if __name__ == '__main__':
         _work = os.path.join(
             temp_dir, f"Workbook–{cp_name} {position} Interview preparation.docx")
         print(
-            f"========== MERGING: {_work}... ====================")
-
+            f"========== Merging Templates into: Workbook–{cp_name} {position} Interview preparation.docx")
+        print("========== Replacing words...")
         for i in list_file:
-            replace_word(i,cp_name, position, industry, logo)
-               
+            replace_word(i, cp_name, position, industry, logo)
+
         list_files_in_temp = merged_by_macro(os.path.join(
             temp_dir, "sys_temp_dir", "copy_template.docx"), merged_workbook)
 
         # replace_word(os.path.join(new_dir, _work),
         #              cp_name, position, industry, logo)
         # update_toc(_work)
-
-        convert_to_pdf(merged_workbook, merged_workbook_pdf)
-
         print(
-            f"========== MERGING: Done ====================")
+            f"========== Creating PDF: Workbook–{cp_name} {position} Interview preparation.pdf")
+        convert_to_pdf(merged_workbook, merged_workbook_pdf)
 
         copy2(merged_workbook_pdf, os.path.join(
             parent_dir, "Course", f'Workbook–{cp_name} {position} Interview preparation.pdf'))
@@ -460,7 +422,7 @@ if __name__ == '__main__':
                     continue
                 else:
                     os.remove(os.path.join(new_dir, i))
-
+        print("========== Converting Powerpoints to pdf")
         pptx_file = os.path.join(
             new_dir, "Course", "Slides - Coursetake Interview Preparation.pptx")
         pptx_to = os.path.join(
@@ -468,7 +430,7 @@ if __name__ == '__main__':
         os.rename(pptx_file, pptx_to)
 
         convert_pptx_to_pdf(pptx_to, os.path.join(
-            parent_dir, "Course", f"Slides – {cp_name} {position} Interview preparation.pptx"))
+            parent_dir, "Course", f"Slides – {cp_name} {position} Interview preparation.pdf"))
 
         src_course = os.path.join(new_dir, "Course")
         src_file_course = [f for f in listdir(
@@ -477,9 +439,12 @@ if __name__ == '__main__':
             copy2(os.path.join(src_course, i),
                   os.path.join(parent_dir, "Course"))
         os.chdir(parent_dir)
-
+        print("========== Creating ZIP file")
         zipf = zipfile.ZipFile(os.path.join(
             parent_dir, f"Course – {cp_name} {position} Interview preparation.zip"), 'w', zipfile.ZIP_DEFLATED)
         zipdir(os.path.join(parent_dir, "Course"), zipf)
         zipf.close()
         rmtree(os.path.join(temp_dir, "sys_temp_dir"))
+        print("========== Finished - Company: " +
+              cp_name, "Position: " + position)
+        print(" ")
