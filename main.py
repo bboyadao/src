@@ -63,7 +63,10 @@ def update_toc(docx_file):
 
     if toc_count > 0:
         toc = doc.TablesOfContents(1)
+        
+        toc.UpdatePageNumbers
         toc.Update
+        time.sleep(10)
         print('TOC should have been updated.')
     else:
         print('TOC has not been updated...')
@@ -81,7 +84,7 @@ Sub NewDocWithCode()
     Dim doc As Document
     Set doc = ActiveDocument
     doc.VBProject.VBComponents("ThisDocument").CodeModule.AddFromString _
-      "Sub Mergedocuments()" & vbLf & _
+    "Sub Mergedocuments()" & vbLf & _
       "Application.ScreenUpdating = False" & vbLf & _
       "MyPath = ActiveDocument.Path" & vbLf & _
       "MyName = Dir(MyPath & ""\"" & ""*.docx"")" & vbLf & _
@@ -101,8 +104,11 @@ Sub NewDocWithCode()
       "MyName = Dir" & vbLf & _
       "Loop " & vbLf & _
       "Application.ScreenUpdating = True" & vbLf & _
-      "End Sub "
+    "End Sub"
+   
 End Sub
+
+
     '''
     macr2 = """
     Sub Macro1()
@@ -110,6 +116,18 @@ End Sub
     Selection.Delete Unit:=wdCharacter, Count:=1
     End Sub
     """
+    
+    update_toc_macro='''
+Sub Update_toc()
+    Dim t As TableOfContents
+    For Each t In ActiveDocument.TablesOfContents
+        t.Update
+    Next t
+    ActiveDocument.Fields.Update
+End Sub
+
+
+     '''
     word = comtypes.client.CreateObject("Word.Application")
     doc = word.Documents.Open(clone)
     wordModule = doc.VBProject.VBComponents.Add(1)
@@ -126,14 +144,30 @@ End Sub
     time.sleep(5)
     wordModule = doc.VBProject.VBComponents.Add(1)
     wordModule.CodeModule.AddFromString(macro)
+
+    
+
+
     word.Application.Run("NewDocWithCode")
     time.sleep(1)
     word.Application.Run("Mergedocuments")
-   # time.sleep(30)
+    time.sleep(30)
     doc.Save()
     doc.SaveAs(merged_name, FileFormat=16)
     doc.Close()
     word.Quit()
+
+
+    word_toc = comtypes.client.CreateObject("Word.Application")
+    doc_toc = word_toc.Documents.Open(merged_name)
+    wordModule = doc_toc.VBProject.VBComponents.Add(1)
+    wordModule.CodeModule.AddFromString(update_toc_macro)
+    word_toc.Application.Run("Update_toc")
+    doc_toc.SaveAs(merged_name, FileFormat=16)
+    doc_toc.Close()
+    word_toc.Quit()
+
+
     _path = os.path.dirname(clone)
     _files = [f for f in listdir(_path) if isfile(join(_path, f))]
     for i in _files:
@@ -210,19 +244,23 @@ def convert_to_pdf(src, dst):
     return True
 
 
-def create_sys_temp_dir(files, sys_temp_dir):
+def create_sys_temp_dir(files, sys_temp_dir,cp_name, position, industry, logo):
+    list_file=[]
     for i, j in enumerate(files):
+
         a = f"{i}-{os.path.basename(j)}"
         clone = f"copy_template.docx"
         if i == 0:
 
             copy2(j, os.path.join(sys_temp_dir, a))
             copy2(j, os.path.join(sys_temp_dir, clone))
+            replace_word(os.path.join(sys_temp_dir, clone),cp_name, position, industry, logo)
 
         else:
             copy2(j, os.path.join(sys_temp_dir, a))
-
-    return sys_temp_dir
+        list_file.append(os.path.join(sys_temp_dir, a))
+    
+    return (sys_temp_dir,list_file)
 
 
 if __name__ == '__main__':
@@ -354,20 +392,23 @@ if __name__ == '__main__':
 
         pdf_study_list = [i.replace("docx", "pdf") for i in study_list]
 
-        list_temp_dir = create_sys_temp_dir(
-            study_list, os.path.join(temp_dir, "sys_temp_dir"))
+        (list_temp_dir,list_file) = create_sys_temp_dir(
+            study_list, os.path.join(temp_dir, "sys_temp_dir"),cp_name, position, industry, logo)
         _stu = os.path.join(
             temp_dir, f"Study Guide–{cp_name} {position} Interview preparation.docx")
         print(
             f"========== MERGING: {_stu}... ====================")
         print(f"== == == == == MERGING: Macro")
 
+        for i in list_file:
+            replace_word(i,cp_name, position, industry, logo)
+            
         list_files_in_temp = merged_by_macro(os.path.join(
             temp_dir, "sys_temp_dir", "copy_template.docx"), merged_study)
-
-        replace_word(os.path.join(new_dir, _stu),
-                     cp_name, position, industry, logo)
-        update_toc(_stu)
+        
+        # replace_word(os.path.join(new_dir, _stu),
+                     # cp_name, position, industry, logo)
+        # update_toc(_stu)
         print(
             f"========== MERGING: Study Guide–{cp_name} {position} Interview preparation.pdf... ====================")
 
@@ -396,15 +437,15 @@ if __name__ == '__main__':
         print(
             f"========== MERGING: {_work}... ====================")
 
-        for i in list_files_in_temp:
-            os.remove(i)
-
+        for i in list_file:
+            replace_word(i,cp_name, position, industry, logo)
+               
         list_files_in_temp = merged_by_macro(os.path.join(
             temp_dir, "sys_temp_dir", "copy_template.docx"), merged_workbook)
 
-        replace_word(os.path.join(new_dir, _work),
-                     cp_name, position, industry, logo)
-        update_toc(_work)
+        # replace_word(os.path.join(new_dir, _work),
+        #              cp_name, position, industry, logo)
+        # update_toc(_work)
 
         convert_to_pdf(merged_workbook, merged_workbook_pdf)
 
