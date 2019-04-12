@@ -75,6 +75,20 @@ def merge():
     # composer.append(doc1, doc2)
 
 
+from pptx import Presentation
+
+
+def replace_ppxt(path):
+    ppt = Presentation(path)
+    for slide in ppt.slides:
+        for shape in slide.shapes:
+            if shape.has_text_frame:
+                a = shape.text = shape.text.replace('[Company]', "Company")
+                b = shape.text = a.replace('[Position]', "Position")
+                c = shape.text = b.replace('[Industry]', "Industry")
+    ppt.save('Presentation1.pptx')
+
+
 def mer2():
     temp1 = '/Users/xiaoma/projects/shopify-book/src/Templates/Study Guide - Template 1.docx'
     doc = Document(temp1)
@@ -101,20 +115,22 @@ def mer3():
 
 
 if __name__ == '__main__':
+    merged_name = '/Users/xiaoma/projects/shopify-book/src/Slides - Coursetake Interview Preparation.pptx'
+    replace_ppxt(merged_name)
     # a = merge()
 
     # merge()
-    merged_name = '/Users/xiaoma/projects/shopify-book/src/Output/Amazon/Fulfillment Associate/Temp Files/Study Guide - Template 1.docx'
-    docx = mer2()
-    a = docx.sections[-1]
-    foot_src = a.footer
-    doc = Document(merged_name)
-    head = doc.sections[-1].header
-    head.add_header("ssssss")
-    footer = doc.sections[-1].footer
-    footer.paragraphs[0].text = "fuckkkkkkkkk"
-    # footer.add_paragraph(
-    # "ffffffffffffffffffffffffffffffffffffffffffffffffffffff")
-    doc.add_heading('Document Title', 0)
-
-    doc.save("/Users/xiaoma/projects/shopify-book/src/Output/Amazon/Fulfillment Associate/Temp Files/changefottt.docx")
+    # merged_name = '/Users/xiaoma/projects/shopify-book/src/Output/Amazon/Fulfillment Associate/Temp Files/Study Guide - Template 1.docx'
+    # docx = mer2()
+    # a = docx.sections[-1]
+    # foot_src = a.footer
+    # doc = Document(merged_name)
+    # head = doc.sections[-1].header
+    # head.add_header("ssssss")
+    # footer = doc.sections[-1].footer
+    # footer.paragraphs[0].text = "fuckkkkkkkkk"
+    # # footer.add_paragraph(
+    # # "ffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+    # doc.add_heading('Document Title', 0)
+    #
+    # doc.save("/Users/xiaoma/projects/shopify-book/src/Output/Amazon/Fulfillment Associate/Temp Files/changefottt.docx")
