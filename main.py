@@ -10,6 +10,7 @@ from os import listdir
 import comtypes.client
 from io import BytesIO
 from docx import Document
+from pptx import Presentation
 from PyPDF2 import PdfFileMerger
 from os.path import isfile, join
 from distutils.dir_util import copy_tree
