@@ -605,7 +605,7 @@ if __name__ == '__main__':
         print(" ")
         print("Create landing page for Course")
         title = f"{cp_name} {position} Interview Preparation Online Course"
-        p_id = add_product(cp_name, position, price_course,
+        p_id = add_product(cp_name, position, industry, price_course,
                            title, shopify_copy_course)
         p_id = p_id['product']['id']
         print(p_id)
@@ -632,7 +632,8 @@ if __name__ == '__main__':
         print("Create landing page for Book")
 
         title = f"{cp_name} {position} Interview Preparation Study Guide"
-        p_id = add_product(cp_name, position, price, title, shopify_copy_book)
+        p_id = add_product(cp_name, position, industry,
+                           price, title, shopify_copy_book)
         p_id = p_id['product']['id']
         print(p_id)
         print("Uploaded Book into Shopify")
