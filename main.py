@@ -117,7 +117,7 @@ def upload_image(product_id, img_path):
     return r.json()
 
 
-def send_owl(title, price, p_id, zip_path):
+def send_owl(title, price, v_id, zip_path):
 
     headers = {
         "Content-type": "multipart/form-data",
@@ -127,7 +127,7 @@ def send_owl(title, price, p_id, zip_path):
         'product[name]': (None, title),
         'product[product_type]': (None, 'digital'),
         'product[price]': (None, price),
-        'product[shopify_variant_id]': p_id,
+        'product[shopify_variant_id]': v_id,
         'product[attachment]': (os.path.basename(zip_path), open(zip_path, 'rb')),
     }
     r = requests.post(owlurl, files=files,)
@@ -605,9 +605,10 @@ if __name__ == '__main__':
         print(" ")
         print("Create landing page for Course")
         title = f"{cp_name} {position} Interview Preparation Online Course"
-        p_id = add_product(cp_name, position, industry, price_course,
-                           title, shopify_copy_course)
-        p_id = p_id['product']['id']
+        _data = add_product(cp_name, position, industry,
+                            price_course, title, shopify_copy_course)
+        p_id = _data['product']['id']
+        v_id = _data['product']['variants'][0]['id']
         print(p_id)
         print("Uploaded Course into Shopify")
 
@@ -627,7 +628,7 @@ if __name__ == '__main__':
         zip_path = os.path.join(
             parent_dir, f"Course – {cp_name} {position} Interview preparation.zip")
         print("Uploading Course's  Zip file to Sendowl")
-        send_owl(title, price, p_id, zip_path)
+        send_owl(title, price, v_id, zip_path)
 
         print("Create landing page for Book")
 
@@ -657,4 +658,4 @@ if __name__ == '__main__':
         pdf_path = os.path.join(
             parent_dir, "Study Guide", f'Study Guide–{cp_name} {position} Interview preparation.pdf')
         print("Uploading Book's  Pdf file to Sendowl")
-        send_owl(title, price, p_id, zip_path)
+        send_owl(title, price, v_id, zip_path)
