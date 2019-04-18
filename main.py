@@ -60,18 +60,20 @@ onlyfiles = [f for f in listdir(templates) if isfile(join(templates, f))]
 onlyfolder = [f for f in listdir(templates) if not isfile(join(templates, f))]
 
 
-def add_product(cp_name, position, price, title, path):
+def add_product(cp_name, position, industry, price, title, path):
     url = f"https://{API_KEY}:{PASSWORD}@{SHOP}.myshopify.com/admin/api/2019-04/products.json"
 
     with open(path, encoding="utf-8") as r:
         f = r.read()
-    if "[Company]" or "[company]" or "[Position]" or "[position]"in f:
+    if "[Company]" or "[company]" or "[Position]" or "[position]" or "[Industry]" or "[industry]" in f:
         des1 = f.replace("[company]", cp_name)
         des2 = des1.replace("[position]", position)
         des3 = des2.replace("[Company]", cp_name)
         des4 = des3.replace("[Position]", position)
+        des5 = des4.replace("[Industry]", position)
+        des6 = des5.replace("[industry]", position)
 
-    des = des4
+    des = des6
     with open(SEO_path, encoding="utf-8") as r:
         f = r.read()
     if "[Company]" or "[company]" or "[Position]" or "[position]"in f:
@@ -401,6 +403,7 @@ if __name__ == '__main__':
         questionsandanswers = data[-2].strip()
         interviewprocess = data[-1].strip()
         price = data[5].strip()
+        price_course = data[6].strip()
 
         parent_dir = os.path.join(
             BASE_DIR, "src", "Output", cp_name, position)
@@ -602,7 +605,7 @@ if __name__ == '__main__':
         print(" ")
         print("Create landing page for Course")
         title = f"{cp_name} {position} Interview Preparation Online Course"
-        p_id = add_product(cp_name, position, price,
+        p_id = add_product(cp_name, position, price_course,
                            title, shopify_copy_course)
         p_id = p_id['product']['id']
         print(p_id)
