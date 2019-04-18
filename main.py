@@ -91,7 +91,7 @@ def add_product(cp_name, position, industry, price, title, path):
             "published": True,
             "body_html": des,
             "vendor": "Coursetake",
-            "product_type": "digital",
+            "product_type": "Digital",
             "variants": [{"price": price}]
             # "tags": seo2
         }
@@ -128,7 +128,7 @@ def send_owl(title, price, v_id, zip_path, pdf_stamping):
         'product[product_type]': (None, 'digital'),
         'product[price]': (None, price),
         'product[shopify_variant_id]': v_id,
-        'product[pdf_stamping]': pdf_stamping
+        'product[pdf_stamping]': pdf_stamping,
         'product[attachment]': (os.path.basename(zip_path), open(zip_path, 'rb')),
     }
     r = requests.post(owlurl, files=files,)
