@@ -617,12 +617,12 @@ if __name__ == '__main__':
 
     title = f"{cp_name} {position} Interview Preparation Study Guide"
     p_id = add_product(cp_name, position, price, title, shopify_copy_book)
+    p_id = p_id['product']['id']
     print(p_id)
     print("Uploaded Book into Shopify")
 
-    p_id = p_id['product']['id']
-
     (_, c_id) = check_collection(cp_name)
+
     if c_id is not None:
         print("Add Book to the collection")
         add_product_to_collection(p_id, c_id)
@@ -631,9 +631,11 @@ if __name__ == '__main__':
         create_collection(cp_name, logo)
         print("Add Book to the collection")
         add_product_to_collection(p_id, c_id)
+
     print("Uploading Book's image to shopify with product")
+
     b = upload_image(p_id, logo)
-    zip_path = os.path.join(
-        parent_dir, f"Book – {cp_name} {position} Interview preparation.zip")
+    pdf_path = os.path.join(
+        parent_dir, "Study Guide", f'Study Guide–{cp_name} {position} Interview preparation.pdf')
     print("Uploading Book's  Zip file to Sendowl")
     send_owl(cp_name, price, p_id, zip_path)

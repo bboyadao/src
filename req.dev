@@ -1,0 +1,45 @@
+2. If there is no collection with name [Company], proceed to add a new collection:
+a. Navigate to https://kourse-com.myshopify.com/admin/collections
+b. Click on “Create Collection”.
+c. Title – [Company]
+d. Description – “Courses and Study Guides to help you ace your upcoming interview at [Company]”.
+e. Collection Image – [Company Image]
+f. Click on “Save Collection”
+3. Create a new course product by navigating to https://kourse-com.myshopify.com/admin/products
+
+
+
+a. Title – [Company] [Position] Interview Preparation Online Course
+b. Description – Copy from “Shopify Copy Course.txt”.
+
+c. Price – [Price of Course]
+
+
+d. Vendor – Coursetake
+
+e. Product Type – Digital
+
+f. Collections – [Company]
+g. Images – \Images\Course
+7. Click on Edit Website SEO.
+8. Replace Meta Description with “Shopify SEO Company.txt”.
+9. Click on “More Actions” and “Add Digital Attachment”.
+10. Upload File – “Course – [company] [position] Interview preparation.zip”
+
+===================================================================================================
+
+1. Create a new course product by navigating to https://kourse-com.myshopify.com/admin/products
+2. Click on “Add Product”
+3. Click on the “Show html” button.
+4. Use the following parameters to create the product.
+a. Title – [Company] [Position] Interview Preparation Study Guide
+b. Description – Copy from “Shopify Copy Book – [Company] [Position] Interview Preparation.txt”.
+c. Price – [Price of Study Guide]
+d. Vendor – Coursetake
+e. Product Type – Digital
+f. Collections – [Company]
+g. Images - \Images\Study Guide
+5. Click on Edit Website SEO.
+6. Replace Meta Description with “Shopify SEO Book – [Company] [Position] Interview Preparation.txt”.
+7. Click on “More Actions” and “Add Digital Attachment”.
+8. Upload File – “Book - [Company] [Position] Interview Preparation.pdf”
