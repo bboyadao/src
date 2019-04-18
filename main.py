@@ -69,7 +69,7 @@ def add_product(cp_name, position, price, title, path):
         des1 = f.replace("[company]", cp_name)
         des2 = des1.replace("[position]", position)
         des3 = des2.replace("[Company]", cp_name)
-        des4 = des2.replace("[Position]", position)
+        des4 = des3.replace("[Position]", position)
 
     des = des4
     with open(SEO_path, encoding="utf-8") as r:
@@ -86,9 +86,10 @@ def add_product(cp_name, position, price, title, path):
             "metafields_global_title_tag": seo,
             "metafields_global_description_tag": seo,
             "title": title,
+            "published": True,
             "body_html": des,
             "vendor": "Coursetake",
-            "product_type": "Digital",
+            "product_type": "digital",
             "variants": [{"price": price}]
             # "tags": seo2
         }
@@ -97,12 +98,17 @@ def add_product(cp_name, position, price, title, path):
     return r.json()
 
 
-def upload_image(product_id, img):
+def upload_image(product_id, img_path):
     url = f"https://{API_KEY}:{PASSWORD}@{SHOP}.myshopify.com/admin/api/2019-04/products/{product_id}/images.json"
+    with open(img_path, "rb") as f:
+        img_str = f.read()
+
+    img_str = base64.b64encode(img_str)
 
     data = {
         "image": {
-            "src": img,
+            "attachment": str(img_str, 'utf-8'),
+            "filename": os.path.basename(img_path)
         }
     }
     r = requests.post(url, json=data, headers=headers)
@@ -612,7 +618,9 @@ if __name__ == '__main__':
             print("Add Course to the collection")
             add_product_to_collection(p_id, c_id)
         print("Uploading Course's image to shopify with product")
-        b = upload_image(p_id, logo)
+        img_path_course = os.path.join(
+            templates, "Images", "Course", f"{cp_name} {position}.jpg")
+        b = upload_image(p_id, img_path_course)
         zip_path = os.path.join(
             parent_dir, f"Course – {cp_name} {position} Interview preparation.zip")
         print("Uploading Course's  Zip file to Sendowl")
@@ -639,8 +647,10 @@ if __name__ == '__main__':
 
         print("Uploading Book's image to shopify with product")
 
-        b = upload_image(p_id, logo)
+        img_path_book = os.path.join(
+            templates, "Images", "Study Guide", f"{cp_name} {position}.jpg")
+        b = upload_image(p_id, img_path_book)
         pdf_path = os.path.join(
             parent_dir, "Study Guide", f'Study Guide–{cp_name} {position} Interview preparation.pdf')
-        print("Uploading Book's  Zip file to Sendowl")
+        print("Uploading Book's  Pdf file to Sendowl")
         send_owl(title, price, p_id, zip_path)
