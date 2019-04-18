@@ -9,7 +9,7 @@ import requests
 import xmltodict
 import subprocess
 from os import listdir
-# import comtypes.client
+import comtypes.client
 from io import BytesIO
 from docx import Document
 from pptx import Presentation
