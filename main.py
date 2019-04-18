@@ -23,6 +23,10 @@ SHOP = "taolaadao"
 url = f"https://{API_KEY}:{PASSWORD}@{SHOP}.myshopify.com/admin/api/2019-04/products.json"
 _encode = base64.b64encode(bytes(url, 'utf-8')).decode('ascii')
 headers = {"Authorization": f"Basic {_encode}"}
+owl_id = "3387976189ccd7b"
+owl_key = "c9c0214dc44a8efd567a"
+owlurl = f'https://{owl_id}:{owl_key}@upload.sendowl.com/api/v1/products.xml'
+
 
 wdFormatPDF = 17
 
@@ -79,8 +83,8 @@ def add_product(cp_name, position, price, title, path):
 
     product = {
         "product": {
-            "metafields_global_title_tag": seo2,
-            "metafields_global_description_tag": seo2,
+            "metafields_global_title_tag": seo,
+            "metafields_global_description_tag": seo,
             "title": title,
             "body_html": des,
             "vendor": "Coursetake",
@@ -105,20 +109,20 @@ def upload_image(product_id, img):
     return r.json()
 
 
-def send_owl(p_name, price, p_id, zip_path):
-    url = 'https://3387976189ccd7b:c9c0214dc44a8efd567a@upload.sendowl.com/api/v1/products.xml'
+def send_owl(title, price, p_id, zip_path):
+
     headers = {
         "Content-type": "multipart/form-data",
         "Accept": "application/json"
     }
     files = {
-        'product[name]': (None, p_name),
+        'product[name]': (None, title),
         'product[product_type]': (None, 'digital'),
         'product[price]': (None, price),
         'product[shopify_variant_id]': p_id,
         'product[attachment]': (os.path.basename(zip_path), open(zip_path, 'rb')),
     }
-    r = requests.post(url, files=files,)
+    r = requests.post(owlurl, files=files,)
     if r.status_code != 200:
         return None
     return json.dumps(xmltodict.parse(r.text))
@@ -589,53 +593,54 @@ if __name__ == '__main__':
     #     rmtree(os.path.join(temp_dir, "sys_temp_dir"))
     #     print("========== Finished - Company: " +
     #           cp_name, "Position: " + position)
-    print(" ")
-    print("Create landing page for Course")
-    title = f"{cp_name} {position} Interview Preparation Online Course"
-    p_id = add_product(cp_name, position, price, title, shopify_copy_course)
-    p_id = p_id['product']['id']
-    print(p_id)
-    print("Uploaded Course into Shopify")
+        print(" ")
+        print("Create landing page for Course")
+        title = f"{cp_name} {position} Interview Preparation Online Course"
+        p_id = add_product(cp_name, position, price,
+                           title, shopify_copy_course)
+        p_id = p_id['product']['id']
+        print(p_id)
+        print("Uploaded Course into Shopify")
 
-    (_, c_id) = check_collection(cp_name)
-    if c_id is not None:
-        print("Add Course to the collection")
-        add_product_to_collection(p_id, c_id)
-    else:
-        print("Create a collection for Course")
-        create_collection(cp_name, logo)
-        print("Add Course to the collection")
-        add_product_to_collection(p_id, c_id)
-    print("Uploading Course's image to shopify with product")
-    b = upload_image(p_id, logo)
-    zip_path = os.path.join(
-        parent_dir, f"Course – {cp_name} {position} Interview preparation.zip")
-    print("Uploading Course's  Zip file to Sendowl")
-    send_owl(cp_name, price, p_id, zip_path)
+        (_, c_id) = check_collection(cp_name)
+        if c_id is not None:
+            print("Add Course to the collection")
+            add_product_to_collection(p_id, c_id)
+        else:
+            print("Create a collection for Course")
+            create_collection(cp_name, logo)
+            print("Add Course to the collection")
+            add_product_to_collection(p_id, c_id)
+        print("Uploading Course's image to shopify with product")
+        b = upload_image(p_id, logo)
+        zip_path = os.path.join(
+            parent_dir, f"Course – {cp_name} {position} Interview preparation.zip")
+        print("Uploading Course's  Zip file to Sendowl")
+        send_owl(title, price, p_id, zip_path)
 
-    print("Create landing page for Book")
+        print("Create landing page for Book")
 
-    title = f"{cp_name} {position} Interview Preparation Study Guide"
-    p_id = add_product(cp_name, position, price, title, shopify_copy_book)
-    p_id = p_id['product']['id']
-    print(p_id)
-    print("Uploaded Book into Shopify")
+        title = f"{cp_name} {position} Interview Preparation Study Guide"
+        p_id = add_product(cp_name, position, price, title, shopify_copy_book)
+        p_id = p_id['product']['id']
+        print(p_id)
+        print("Uploaded Book into Shopify")
 
-    (_, c_id) = check_collection(cp_name)
+        (_, c_id) = check_collection(cp_name)
 
-    if c_id is not None:
-        print("Add Book to the collection")
-        add_product_to_collection(p_id, c_id)
-    else:
-        print("Create a collection for Book")
-        create_collection(cp_name, logo)
-        print("Add Book to the collection")
-        add_product_to_collection(p_id, c_id)
+        if c_id is not None:
+            print("Add Book to the collection")
+            add_product_to_collection(p_id, c_id)
+        else:
+            print("Create a collection for Book")
+            create_collection(cp_name, logo)
+            print("Add Book to the collection")
+            add_product_to_collection(p_id, c_id)
 
-    print("Uploading Book's image to shopify with product")
+        print("Uploading Book's image to shopify with product")
 
-    b = upload_image(p_id, logo)
-    pdf_path = os.path.join(
-        parent_dir, "Study Guide", f'Study Guide–{cp_name} {position} Interview preparation.pdf')
-    print("Uploading Book's  Zip file to Sendowl")
-    send_owl(cp_name, price, p_id, zip_path)
+        b = upload_image(p_id, logo)
+        pdf_path = os.path.join(
+            parent_dir, "Study Guide", f'Study Guide–{cp_name} {position} Interview preparation.pdf')
+        print("Uploading Book's  Zip file to Sendowl")
+        send_owl(title, price, p_id, zip_path)
