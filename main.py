@@ -593,10 +593,9 @@ if __name__ == '__main__':
     print("Create landing page for Course")
     title = f"{cp_name} {position} Interview Preparation Online Course"
     p_id = add_product(cp_name, position, price, title, shopify_copy_course)
+    p_id = p_id['product']['id']
     print(p_id)
     print("Uploaded Course into Shopify")
-
-    p_id = p_id['product']['id']
 
     (_, c_id) = check_collection(cp_name)
     if c_id is not None:
@@ -611,7 +610,7 @@ if __name__ == '__main__':
     b = upload_image(p_id, logo)
     zip_path = os.path.join(
         parent_dir, f"Course – {cp_name} {position} Interview preparation.zip")
-    print("Uploading Course's  Zip file to Sendowl)
+    print("Uploading Course's  Zip file to Sendowl")
     send_owl(cp_name, price, p_id, zip_path)
 
     print("Create landing page for Book")
@@ -636,5 +635,5 @@ if __name__ == '__main__':
     b = upload_image(p_id, logo)
     zip_path = os.path.join(
         parent_dir, f"Book – {cp_name} {position} Interview preparation.zip")
-    print("Uploading Book's  Zip file to Sendowl)
+    print("Uploading Book's  Zip file to Sendowl")
     send_owl(cp_name, price, p_id, zip_path)
