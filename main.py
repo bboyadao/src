@@ -2,13 +2,14 @@ import os
 import sys
 import csv
 import time
+import base64
 import zipfile
 import pathlib
 import requests
 import xmltodict
 import subprocess
 from os import listdir
-import comtypes.client
+# import comtypes.client
 from io import BytesIO
 from docx import Document
 from pptx import Presentation
@@ -16,7 +17,12 @@ from PyPDF2 import PdfFileMerger
 from os.path import isfile, join
 from distutils.dir_util import copy_tree
 from shutil import (copy2, copytree, rmtree, move)
-
+API_KEY = "a9452d93d8b18b78fec035be138daebc"
+PASSWORD = "ee2fb8b0b04e52c48e7ee6c61586c176"
+SHOP = "taolaadao"
+url = f"https://{API_KEY}:{PASSWORD}@{SHOP}.myshopify.com/admin/api/2019-04/products.json"
+_encode = base64.b64encode(bytes(url, 'utf-8')).decode('ascii')
+headers = {"Authorization": f"Basic {_encode}"}
 
 wdFormatPDF = 17
 
@@ -49,6 +55,7 @@ onlyfolder = [f for f in listdir(templates) if not isfile(join(templates, f))]
 
 
 def add_product(cp_name, position, price):
+    url = f"https://{API_KEY}:{PASSWORD}@{SHOP}.myshopify.com/admin/api/2019-04/products.json"
     title = f"{cp_name} {position} Interview Preparation Online Course"
     with open(des_path) as r:
         f = r.read()
@@ -371,7 +378,7 @@ if __name__ == '__main__':
 
     file_input = [os.path.join(templates, i) for i in onlyfiles]
 
-    form = get_form("form.csv")
+    form = get_form("Industry_Company_Position.csv")
 
     for data in form[1:-1]:
 
