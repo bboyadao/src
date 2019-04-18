@@ -43,8 +43,10 @@ mypath = os.path.join(BASE_DIR)
 src_path = os.path.join(BASE_DIR, "src")
 
 templates = os.path.join(BASE_DIR, src_path, "Templates")
-des_path = os.path.join(BASE_DIR, templates, "Shopify",
-                        "shopify_copy_course.txt")
+shopify_copy_course = os.path.join(BASE_DIR, templates, "Shopify",
+                                   "shopify_copy_course.txt")
+shopify_copy_book = os.path.join(BASE_DIR, templates, "Shopify",
+                                 "shopify_copy_book.txt")
 SEO_path = os.path.join(BASE_DIR, templates, "Shopify",
                         "shopify_SEO_company.txt")
 
@@ -54,10 +56,10 @@ onlyfiles = [f for f in listdir(templates) if isfile(join(templates, f))]
 onlyfolder = [f for f in listdir(templates) if not isfile(join(templates, f))]
 
 
-def add_product(cp_name, position, price):
+def add_product(cp_name, position, price, title, path):
     url = f"https://{API_KEY}:{PASSWORD}@{SHOP}.myshopify.com/admin/api/2019-04/products.json"
-    title = f"{cp_name} {position} Interview Preparation Online Course"
-    with open(des_path) as r:
+
+    with open(path, encoding="utf-8") as r:
         f = r.read()
     if "[Company]" or "[company]" or "[Position]" or "[position]"in f:
         des1 = f.replace("[company]", cp_name)
@@ -66,7 +68,7 @@ def add_product(cp_name, position, price):
         des4 = des2.replace("[Position]", position)
 
     des = des4
-    with open(des_path) as r:
+    with open(SEO_path, encoding="utf-8") as r:
         f = r.read()
     if "[Company]" or "[company]" or "[Position]" or "[position]"in f:
         seo1 = f.replace("[company]", cp_name)
@@ -390,8 +392,8 @@ if __name__ == '__main__':
         interviewprocess = data[-1].strip()
         price = data[5].strip()
 
-    #     parent_dir = os.path.join(
-    #         BASE_DIR, "src", "Output", cp_name, position)
+        parent_dir = os.path.join(
+            BASE_DIR, "src", "Output", cp_name, position)
     #     temp_dir = os.path.join(parent_dir, "Temp Files")
     #
     #     pathlib.Path(temp_dir).mkdir(parents=True, exist_ok=True)
@@ -588,17 +590,51 @@ if __name__ == '__main__':
     #     print("========== Finished - Company: " +
     #           cp_name, "Position: " + position)
     print(" ")
-    p_id = add_product(cp_name, position, price)
-    p_id = p_id['product']['id']
+    print("Create landing page for Course")
+    title = f"{cp_name} {position} Interview Preparation Online Course"
+    p_id = add_product(cp_name, position, price, title, shopify_copy_course)
     print(p_id)
+    print("Uploaded Course into Shopify")
+
+    p_id = p_id['product']['id']
+
     (_, c_id) = check_collection(cp_name)
     if c_id is not None:
+        print("Add Course to the collection")
         add_product_to_collection(p_id, c_id)
     else:
+        print("Create a collection for Course")
         create_collection(cp_name, logo)
+        print("Add Course to the collection")
         add_product_to_collection(p_id, c_id)
-
+    print("Uploading Course's image to shopify with product")
     b = upload_image(p_id, logo)
     zip_path = os.path.join(
         parent_dir, f"Course – {cp_name} {position} Interview preparation.zip")
+    print("Uploading Course's  Zip file to Sendowl)
+    send_owl(cp_name, price, p_id, zip_path)
+
+    print("Create landing page for Book")
+
+    title = f"{cp_name} {position} Interview Preparation Study Guide"
+    p_id = add_product(cp_name, position, price, title, shopify_copy_book)
+    print(p_id)
+    print("Uploaded Book into Shopify")
+
+    p_id = p_id['product']['id']
+
+    (_, c_id) = check_collection(cp_name)
+    if c_id is not None:
+        print("Add Book to the collection")
+        add_product_to_collection(p_id, c_id)
+    else:
+        print("Create a collection for Book")
+        create_collection(cp_name, logo)
+        print("Add Book to the collection")
+        add_product_to_collection(p_id, c_id)
+    print("Uploading Book's image to shopify with product")
+    b = upload_image(p_id, logo)
+    zip_path = os.path.join(
+        parent_dir, f"Book – {cp_name} {position} Interview preparation.zip")
+    print("Uploading Book's  Zip file to Sendowl)
     send_owl(cp_name, price, p_id, zip_path)
