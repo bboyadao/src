@@ -131,6 +131,7 @@ def send_owl(title, price, v_id, zip_path, pdf_stamping):
         'product[pdf_stamping]': pdf_stamping,
         'product[attachment]': (os.path.basename(zip_path), open(zip_path, 'rb')),
     }
+    print(f"using Vid {v_id}")
     r = requests.post(owlurl, files=files,)
     if r.status_code != 200:
         return None
@@ -627,10 +628,12 @@ if __name__ == '__main__':
         img_path_course = os.path.join(
             templates, "Images", "Course", f"{cp_name} {position}.jpg")
         b = upload_image(p_id, img_path_course)
+
         zip_path = os.path.join(
             parent_dir, f"Course – {cp_name} {position} Interview preparation.zip")
         print("Uploading Course's  Zip file to Sendowl")
-        send_owl(title, price, v_id, zip_path, pdf_stamping=False)
+        owl = send_owl(title, price, v_id, zip_path, pdf_stamping=False)
+        print(owl)
 
         print("Create landing page for Book")
 
@@ -660,4 +663,5 @@ if __name__ == '__main__':
         pdf_path = os.path.join(
             parent_dir, "Study Guide", f'Study Guide–{cp_name} {position} Interview preparation.pdf')
         print("Uploading Book's  Pdf file to Sendowl")
-        send_owl(title, price, v_id, zip_path, pdf_stamping=True)
+        owl = send_owl(title, price, v_id, zip_path, pdf_stamping=True)
+        print(owl)
