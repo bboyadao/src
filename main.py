@@ -2,6 +2,7 @@ import os
 import sys
 import csv
 import time
+import json
 import base64
 import zipfile
 import pathlib
@@ -9,7 +10,7 @@ import requests
 import xmltodict
 import subprocess
 from os import listdir
-import comtypes.client
+# import comtypes.client
 from io import BytesIO
 from docx import Document
 from pptx import Presentation
@@ -60,6 +61,29 @@ onlyfiles = [f for f in listdir(templates) if isfile(join(templates, f))]
 onlyfolder = [f for f in listdir(templates) if not isfile(join(templates, f))]
 
 
+# def publish_product(p_id):
+#     url = f"https://{API_KEY}:{PASSWORD}@{SHOP}.myshopify.com/admin/api/2019-04/products{p_id}.json"
+#     data = {
+#         "product": {
+#             "id": p_id,
+#             "published": True
+#         }
+#     }
+#
+#     r = requests.post(url, json=data, headers=headers)
+
+def update_requires_shiping(v_id):
+    url = f"https://{API_KEY}:{PASSWORD}@{SHOP}.myshopify.com/admin/api/2019-04/variants/{v_id}.json"
+    data = {
+        "variant": {
+            "id": v_id,
+            "requires_shipping": False
+        }
+    }
+    r = requests.put(url, json=data, headers=headers)
+    print(r.content)
+
+
 def add_product(cp_name, position, industry, price, title, path):
     url = f"https://{API_KEY}:{PASSWORD}@{SHOP}.myshopify.com/admin/api/2019-04/products.json"
 
@@ -88,7 +112,8 @@ def add_product(cp_name, position, industry, price, title, path):
             "metafields_global_title_tag": seo,
             "metafields_global_description_tag": seo,
             "title": title,
-            "published": True,
+            "published": "true",
+
             "body_html": des,
             "vendor": "Coursetake",
             "product_type": "Digital",
@@ -120,20 +145,22 @@ def upload_image(product_id, img_path):
 def send_owl(title, price, v_id, zip_path, pdf_stamping):
 
     headers = {
-        "Content-type": "multipart/form-data",
+        "Content-type": "multipart/form-data,application/json",
         "Accept": "application/json"
     }
     files = {
         'product[name]': (None, title),
         'product[product_type]': (None, 'digital'),
         'product[price]': (None, price),
-        'product[shopify_variant_id]': v_id,
-        'product[pdf_stamping]': pdf_stamping,
+        'product[shopify_variant_id]': (None, v_id),
+        'product[pdf_stamping]': (None, pdf_stamping),
         'product[attachment]': (os.path.basename(zip_path), open(zip_path, 'rb')),
     }
     print(f"using Vid {v_id}")
     r = requests.post(owlurl, files=files,)
-    if r.status_code != 200:
+
+    if r.status_code != 201:
+        print(f"there are error {r.content}")
         return None
     return json.dumps(xmltodict.parse(r.text))
 
@@ -607,13 +634,16 @@ if __name__ == '__main__':
         print(" ")
         print("Create landing page for Course")
         title = f"{cp_name} {position} Interview Preparation Online Course"
+        print("Uploaded Course into Shopify")
         _data = add_product(cp_name, position, industry,
                             price_course, title, shopify_copy_course)
         p_id = _data['product']['id']
         v_id = _data['product']['variants'][0]['id']
+
+        update_requires_shiping(v_id)
+        print("updated not phisical shipping")
         print(p_id)
-        print(vid)
-        print("Uploaded Course into Shopify")
+        print(v_id)
 
         (_, c_id) = check_collection(cp_name)
         if c_id is not None:
@@ -638,10 +668,12 @@ if __name__ == '__main__':
         print("Create landing page for Book")
 
         title = f"{cp_name} {position} Interview Preparation Study Guide"
-        p_id = add_product(cp_name, position, industry,
-                           price, title, shopify_copy_book)
-        p_id = p_id['product']['id']
+        _data = add_product(cp_name, position, industry,
+                            price, title, shopify_copy_book)
+        p_id = _data['product']['id']
+        v_id = _data['product']['variants'][0]['id']
         print(p_id)
+        print(v_id)
         print("Uploaded Book into Shopify")
 
         (_, c_id) = check_collection(cp_name)
