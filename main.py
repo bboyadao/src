@@ -10,7 +10,7 @@ import requests
 import xmltodict
 import subprocess
 from os import listdir
-# import comtypes.client
+import comtypes.client
 from io import BytesIO
 from docx import Document
 from pptx import Presentation
@@ -81,7 +81,10 @@ def update_requires_shiping(v_id):
         }
     }
     r = requests.put(url, json=data, headers=headers)
-    print(r.content)
+    if r.status_code != 200:
+        print(r.content)
+        return False
+    return True
 
 
 def add_product(cp_name, position, industry, price, title, path):
@@ -156,7 +159,6 @@ def send_owl(title, price, v_id, zip_path, pdf_stamping):
         'product[pdf_stamping]': (None, pdf_stamping),
         'product[attachment]': (os.path.basename(zip_path), open(zip_path, 'rb')),
     }
-    print(f"using Vid {v_id}")
     r = requests.post(owlurl, files=files,)
 
     if r.status_code != 201:
@@ -478,7 +480,7 @@ if __name__ == '__main__':
     #         _qa) if not isfile(join(templates, f))]
     #     img = [f for f in listdir(
     #         _img) if not isfile(join(templates, f))]
-    #     print("========== Copying Template Files for " + cp_name)
+    #     print("===== Copying Template Files for " + cp_name)
     #
     #     for i in cp_detail_word:
     #         if cp_name.lower() in i.lower():
@@ -545,8 +547,8 @@ if __name__ == '__main__':
     #     _stu = os.path.join(
     #         temp_dir, f"Study Guide–{cp_name} {position} Interview preparation.docx")
     #     print(
-    #         f"========== Merging Templates into: Study Guide–{cp_name} {position} Interview preparation.docx")
-    #     print("========== Replacing words...")
+    #         f"===== Merging Templates into: Study Guide–{cp_name} {position} Interview preparation.docx")
+    #     print("===== Replacing words...")
     #     for i in list_file:
     #         replace_word(i, cp_name, position, industry, logo)
     #
@@ -557,7 +559,7 @@ if __name__ == '__main__':
     #     # cp_name, position, industry, logo)
     #     # update_toc(_stu)
     #     print(
-    #         f"========== Creating PDF: Study Guide–{cp_name} {position} Interview preparation.pdf")
+    #         f"===== Creating PDF: Study Guide–{cp_name} {position} Interview preparation.pdf")
     #
     #     convert_to_pdf(merged_study, merged_study_pdf)
     #
@@ -580,8 +582,8 @@ if __name__ == '__main__':
     #     _work = os.path.join(
     #         temp_dir, f"Workbook–{cp_name} {position} Interview preparation.docx")
     #     print(
-    #         f"========== Merging Templates into: Workbook–{cp_name} {position} Interview preparation.docx")
-    #     print("========== Replacing words...")
+    #         f"===== Merging Templates into: Workbook–{cp_name} {position} Interview preparation.docx")
+    #     print("===== Replacing words...")
     #     for i in list_file:
     #         replace_word(i, cp_name, position, industry, logo)
     #
@@ -592,7 +594,7 @@ if __name__ == '__main__':
     #     #              cp_name, position, industry, logo)
     #     # update_toc(_work)
     #     print(
-    #         f"========== Creating PDF: Workbook–{cp_name} {position} Interview preparation.pdf")
+    #         f"===== Creating PDF: Workbook–{cp_name} {position} Interview preparation.pdf")
     #     convert_to_pdf(merged_workbook, merged_workbook_pdf)
     #
     #     copy2(merged_workbook_pdf, os.path.join(
@@ -604,7 +606,7 @@ if __name__ == '__main__':
     #             else:
     #                 os.remove(os.path.join(new_dir, i))
     #
-    #     print("========== Converting Powerpoints to pdf")
+    #     print("===== Converting Powerpoints to pdf")
     #     pptx_file = os.path.join(
     #         new_dir, "Course", "Slides - Coursetake Interview Preparation.pptx")
     #     pptx_to = os.path.join(
@@ -623,77 +625,77 @@ if __name__ == '__main__':
     #         copy2(os.path.join(src_course, i),
     #               os.path.join(parent_dir, "Course"))
     #     os.chdir(parent_dir)
-    #     print("========== Creating ZIP file")
+    #     print("===== Creating ZIP file")
     #     zipf = zipfile.ZipFile(os.path.join(
     #         parent_dir, f"Course – {cp_name} {position} Interview preparation.zip"), 'w', zipfile.ZIP_DEFLATED)
     #     zipdir(os.path.join(parent_dir, "Course"), zipf)
     #     zipf.close()
     #     rmtree(os.path.join(temp_dir, "sys_temp_dir"))
-    #     print("========== Finished - Company: " +
+    #     print("===== Finished - Company: " +
     #           cp_name, "Position: " + position)
         print(" ")
-        print("Create landing page for Course")
+        print(
+            f"========== Create landing page for {cp_name} {position} Interview Preparation Online Course ")
         title = f"{cp_name} {position} Interview Preparation Online Course"
-        print("Uploaded Course into Shopify")
+        print("===== Uploaded Course into Shopify ")
         _data = add_product(cp_name, position, industry,
                             price_course, title, shopify_copy_course)
         p_id = _data['product']['id']
         v_id = _data['product']['variants'][0]['id']
 
         update_requires_shiping(v_id)
-        print("updated not phisical shipping")
-        print(p_id)
-        print(v_id)
+        print("===== Updated variant is not phisical shipping ")
 
         (_, c_id) = check_collection(cp_name)
         if c_id is not None:
-            print("Add Course to the collection")
+            print("===== Add Course to the collection ")
             add_product_to_collection(p_id, c_id)
         else:
-            print("Create a collection for Course")
+            print("===== Create a collection for Course ")
             create_collection(cp_name, logo)
-            print("Add Course to the collection")
+            print("===== Add Course to the collection ")
             add_product_to_collection(p_id, c_id)
-        print("Uploading Course's image to shopify with product")
+        print(f"===== Uploading Course's image to shopify with product ")
         img_path_course = os.path.join(
             templates, "Images", "Course", f"{cp_name} {position}.jpg")
         b = upload_image(p_id, img_path_course)
 
         zip_path = os.path.join(
             parent_dir, f"Course – {cp_name} {position} Interview preparation.zip")
-        print("Uploading Course's  Zip file to Sendowl")
+        print("===== Uploading Course's Zip file to Sendowl ")
         owl = send_owl(title, price, v_id, zip_path, pdf_stamping=False)
-        print(owl)
+        print(f"========== Uploaded! \n")
 
-        print("Create landing page for Book")
+        print(
+            "========== Create Book's landing page for {cp_name} {position} ")
 
         title = f"{cp_name} {position} Interview Preparation Study Guide"
         _data = add_product(cp_name, position, industry,
                             price, title, shopify_copy_book)
         p_id = _data['product']['id']
         v_id = _data['product']['variants'][0]['id']
-        print(p_id)
-        print(v_id)
-        print("Uploaded Book into Shopify")
+
+        print(f"===== Added Book to the collection {cp_name}")
+        print(f"===== Uploaded {title} into Shopify ")
 
         (_, c_id) = check_collection(cp_name)
 
         if c_id is not None:
-            print("Add Book to the collection")
+
             add_product_to_collection(p_id, c_id)
+            print(f"===== Added Book to the collection {cp_name} ")
         else:
-            print("Create a collection for Book")
             create_collection(cp_name, logo)
-            print("Add Book to the collection")
+            print(f"===== Created a collection of Book for {cp_name} ")
             add_product_to_collection(p_id, c_id)
+            print(f"===== Added Book to the collection {cp_name} ")
 
-        print("Uploading Book's image to shopify with product")
-
+        print(f"===== Uploading Book's image to shopify with product ")
         img_path_book = os.path.join(
             templates, "Images", "Study Guide", f"{cp_name} {position}.jpg")
         b = upload_image(p_id, img_path_book)
         pdf_path = os.path.join(
             parent_dir, "Study Guide", f'Study Guide–{cp_name} {position} Interview preparation.pdf')
-        print("Uploading Book's  Pdf file to Sendowl")
+        print("===== Uploading Book's Pdf file to Sendowl ")
         owl = send_owl(title, price, v_id, zip_path, pdf_stamping=True)
-        print(owl)
+        print(f"========== Uploaded! \n")
