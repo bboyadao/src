@@ -234,22 +234,29 @@ def update_toc(docx_file):
 
 def merged_by_macro(clone, merged_name):
     active_dir = os.path.dirname(clone)
+    active_dir = os.path.join(active_dir, "sys_temp_dir")
 
     _files = [f for f in listdir(active_dir) if isfile(join(active_dir, f))]
-    _files.sort()
+    dud = ["co", "~$"]
+    test = [[x, int(x[0:2].replace("-", "").replace(" ", ""))]
+            for x in _files if x[0:2] not in dud]
+    test = sorted(test, key=itemgetter(1))
+    print(test)
+    _files = [x[0] for x in test]
+    print(_files)
     files = []
-    for i in natsorted(_files):
-        if "$" in i:
-            continue
+    for i in (_files):
+        #     if "$" in i:
+        #         continue
         files.append(i)
 
-    active_files = ', '.join('"{0}"'.format(w) for w in files)
+    active_files = ', '.join('""{0}""'.format(w) for w in files)
 
     macro = '''
     "Sub NewDocWithCode()"
         "Application.ScreenUpdating = False" & vbLf & _
         "MyPath = ActiveDocument.Path" & vbLf & _
-        "MyName = Dir(MyPath & ""\"" & ""*.docx"")" & vbLf & _
+
         "Dim myHeadings" & vbLf & _
         "ActiveDocument.Characters.Last.Select" & vbLf & _
         "Selection.Collapse" & vbLf & _
@@ -257,7 +264,7 @@ def merged_by_macro(clone, merged_name):
 
         "For Each Heading In myHeadings" & vbLf & _
 
-            "b = MyPath & ""\"" & Heading & "".docx"""  & vbLf & _
+            "b = MyPath & ""\\"" & Heading" & vbLf & _
             "Set wb = Documents.Open(b)" & vbLf & _
             "Selection.WholeStory" & vbLf & _
             "Selection.Copy" & vbLf & _
