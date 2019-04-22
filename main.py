@@ -27,7 +27,7 @@ headers = {"Authorization": f"Basic {_encode}"}
 owl_id = "3387976189ccd7b"
 owl_key = "c9c0214dc44a8efd567a"
 owlurl = f'https://{owl_id}:{owl_key}@upload.sendowl.com/api/v1/products.xml'
-
+from operator import itemgetter
 
 wdFormatPDF = 17
 
@@ -233,6 +233,8 @@ def update_toc(docx_file):
 
 def merged_by_macro(clone, merged_name):
     active_dir = os.path.dirname(clone)
+    #active_dir = os.path.join(active_dir, "sys_temp_dir")
+
     _files = [f for f in listdir(active_dir) if isfile(join(active_dir, f))]
     dud = ["co", "~$"]
     test = [[x, int(x[0:2].replace("-", "").replace(" ", ""))]
@@ -248,19 +250,17 @@ def merged_by_macro(clone, merged_name):
         files.append(i)
 
     active_files = ', '.join('""{0}""'.format(w) for w in files)
+    print(active_files)
 
     macro = '''
     "Sub NewDocWithCode()"
         "Application.ScreenUpdating = False" & vbLf & _
         "MyPath = ActiveDocument.Path" & vbLf & _
-
         "Dim myHeadings" & vbLf & _
         "ActiveDocument.Characters.Last.Select" & vbLf & _
         "Selection.Collapse" & vbLf & _
         "myHeadings = Array(''' + active_files + ''')" & vbLf & _
-
         "For Each Heading In myHeadings" & vbLf & _
-
             "b = MyPath & ""\\"" & Heading" & vbLf & _
             "Set wb = Documents.Open(b)" & vbLf & _
             "Selection.WholeStory" & vbLf & _
@@ -271,9 +271,9 @@ def merged_by_macro(clone, merged_name):
             "Selection.Paste" & vbLf & _
             "wb.Close False"  & vbLf & _
             "Next Heading"  & vbLf & _
-
     "End Sub"
     '''
+    print(macro)
     macr2 = """
     Sub Macro1()
     Selection.WholeStory
