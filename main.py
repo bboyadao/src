@@ -234,12 +234,13 @@ def update_toc(docx_file):
 def merged_by_macro(clone, merged_name):
     active_dir = os.path.dirname(clone)
 
-    _files = [f for f in listdir(active_dir) if isfile(join(active_dir, f))]
+    _files = [f for f in sorted(listdir(active_dir))
+              if isfile(join(active_dir, f))]
+    _files.sort()
     files = []
-    for i in files:
+    for i in _files:
         if "$" in i:
             continue
-        i = os.path.join(active_dir, i)
         files.append(i)
 
     active_files = ', '.join('"{0}"'.format(w) for w in files)
