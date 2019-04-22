@@ -615,18 +615,18 @@ if __name__ == '__main__':
                     continue
                 else:
                     os.remove(os.path.join(new_dir, i))
+
+        # print("===== Converting Powerpoints to pdf")
+        # pptx_file = os.path.join(
+        #     new_dir, "Course", "Slides - Coursetake Interview Preparation.pptx")
+        # pptx_to = os.path.join(
+        #     new_dir, "Course", f"Slides – {cp_name} {position} Interview preparation.pptx")
+        # os.rename(pptx_file, pptx_to)
         #
-        print("===== Converting Powerpoints to pdf")
-        pptx_file = os.path.join(
-            new_dir, "Course", "Slides - Coursetake Interview Preparation.pptx")
-        pptx_to = os.path.join(
-            new_dir, "Course", f"Slides – {cp_name} {position} Interview preparation.pptx")
-        os.rename(pptx_file, pptx_to)
+        # replace_ppxt(pptx_to, cp_name, position, industry)
         #
-        replace_ppxt(pptx_to, cp_name, position, industry)
-        #
-        convert_pptx_to_pdf(pptx_to, os.path.join(
-            parent_dir, "Course", f"Slides – {cp_name} {position} Interview preparation.pdf"))
+        # convert_pptx_to_pdf(pptx_to, os.path.join(
+        #     parent_dir, "Course", f"Slides – {cp_name} {position} Interview preparation.pdf"))
         #
         src_course = os.path.join(new_dir, "Course")
         src_file_course = [f for f in listdir(
