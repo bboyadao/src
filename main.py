@@ -232,9 +232,9 @@ def update_toc(docx_file):
 
 
 def merged_by_macro(clone, merged_name):
-    active_dir = os.path.abspath(clone)
+    active_dir = os.path.dirname(clone)
 
-    _files = [f for f in listdir(_path) if isfile(join(_path, f))]
+    _files = [f for f in listdir(active_dir) if isfile(join(active_dir, f))]
     files = []
     for i in files:
         if "$" in i:
@@ -244,7 +244,7 @@ def merged_by_macro(clone, merged_name):
 
     active_files = ', '.join('"{0}"'.format(w) for w in files)
 
-    macro_old = '''
+    macro = '''
     "Sub NewDocWithCode()"
         "Application.ScreenUpdating = False" & vbLf & _
         "MyPath = ActiveDocument.Path" & vbLf & _
@@ -252,7 +252,7 @@ def merged_by_macro(clone, merged_name):
         "Dim myHeadings" & vbLf & _
         "ActiveDocument.Characters.Last.Select" & vbLf & _
         "Selection.Collapse" & vbLf & _
-        "myHeadings = Array({active_files})" & vbLf & _
+        "myHeadings = Array(''' + active_files + ''')" & vbLf & _
 
         "For Each Heading In myHeadings" & vbLf & _
 
