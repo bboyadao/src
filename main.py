@@ -13,6 +13,7 @@ from os import listdir
 import comtypes.client
 from io import BytesIO
 from docx import Document
+from natsort import natsorted
 from pptx import Presentation
 from PyPDF2 import PdfFileMerger
 from os.path import isfile, join
@@ -234,11 +235,10 @@ def update_toc(docx_file):
 def merged_by_macro(clone, merged_name):
     active_dir = os.path.dirname(clone)
 
-    _files = [f for f in sorted(listdir(active_dir))
-              if isfile(join(active_dir, f))]
+    _files = [f for f in listdir(active_dir) if isfile(join(active_dir, f))]
     _files.sort()
     files = []
-    for i in _files:
+    for i in natsorted(_files):
         if "$" in i:
             continue
         files.append(i)
