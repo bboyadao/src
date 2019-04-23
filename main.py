@@ -10,7 +10,7 @@ import requests
 import xmltodict
 import subprocess
 from os import listdir
-import comtypes.client
+# import comtypes.client
 from io import BytesIO
 from docx import Document
 from pptx import Presentation
@@ -233,27 +233,22 @@ def update_toc(docx_file):
 
 def merged_by_macro(clone, merged_name):
     active_dir = os.path.dirname(clone)
-    #active_dir = os.path.join(active_dir, "sys_temp_dir")
 
     _files = [f for f in listdir(active_dir) if isfile(join(active_dir, f))]
     dud = ["co", "~$"]
     test = [[x, int(x[0:2].replace("-", "").replace(" ", ""))]
             for x in _files if x[0:2] not in dud]
     test = sorted(test, key=itemgetter(1))
-    print(test)
-    _files = [x[0] for x in test]
-    print(_files)
-    files = []
-    for i in (_files):
-        #     if "$" in i:
-        #         continue
-        files.append(i)
+    files = [x[0] for x in test]
 
     active_files = ', '.join('""{0}""'.format(w) for w in files)
-    print(active_files)
 
     macro = '''
-    "Sub NewDocWithCode()"
+Sub NewDocWithCode()
+    Dim doc As Document
+    Set doc = ActiveDocument
+    doc.VBProject.VBComponents("ThisDocument").CodeModule.AddFromString _
+    "Sub Mergedocuments()" & vbLf & _
         "Application.ScreenUpdating = False" & vbLf & _
         "MyPath = ActiveDocument.Path" & vbLf & _
         "Dim myHeadings" & vbLf & _
@@ -269,11 +264,13 @@ def merged_by_macro(clone, merged_name):
             "Selection.EndKey Unit:=wdLine" & vbLf & _
             "Selection.TypeParagraph" & vbLf & _
             "Selection.Paste" & vbLf & _
-            "wb.Close False"  & vbLf & _
-            "Next Heading"  & vbLf & _
-    "End Sub"
+            "wb.Close False" & vbLf & _
+            "Next Heading" & vbLf & _
+        "End Sub"
+End Sub
+
     '''
-    print(macro)
+
     macr2 = """
     Sub Macro1()
     Selection.WholeStory
@@ -310,7 +307,7 @@ End Sub
     word.Application.Run("NewDocWithCode")
     time.sleep(1)
     word.Application.Run("Mergedocuments")
-    time.sleep(30)
+    time.sleep(10)
     doc.Save()
     doc.SaveAs(merged_name, FileFormat=16)
     doc.Close()
@@ -318,6 +315,7 @@ End Sub
 
     word_toc = comtypes.client.CreateObject("Word.Application")
     doc_toc = word_toc.Documents.Open(merged_name)
+    print("===== Updating Table of Contents")
     wordModule = doc_toc.VBProject.VBComponents.Add(1)
     wordModule.CodeModule.AddFromString(update_toc_macro)
     word_toc.Application.Run("Update_toc")
@@ -378,10 +376,66 @@ def get_form(path):
         return list(b)
 
 
-def convert_pptx_to_pdf(src, dst):
+def replace_and_convert_pptx_to_pdf(src, dst, data):
     powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
     powerpoint.Visible = 1
     deck = powerpoint.Presentations.Open(src)
+    wordModule = deck.VBProject.VBComponents.Add(1)
+    replaced = ', '.join('"{0}"'.format(w) for w in data)
+    macro = '''
+    Sub Multi_FindReplace()
+    Dim sld As Slide
+    Dim shp As Shape
+    Dim ShpTxt As TextRange
+    Dim TmpTxt As TextRange
+    Dim FindList As Variant
+    Dim ReplaceList As Variant
+    Dim x As Long
+    Dim t As String
+    Dim y As String
+
+    FindList = Array("[Company]", "[Position]", "[Industry]")
+    ReplaceList = Array(''' + replaced + ''')
+
+    For Each sld In ActivePresentation.Slides
+
+       For x = LBound(FindList) To UBound(FindList)
+
+        t = FindList(x)
+        y = ReplaceList(x)
+
+        Call findAndReplaceText(sld, t, y)
+
+       Next x
+
+    Next sld
+
+    End Sub
+
+    Sub findAndReplaceText(sld As PowerPoint.Slide, findText As String, replaceText As String)
+    Dim shp As PowerPoint.Shape
+    Dim textLoc As PowerPoint.TextRange
+    For Each shp In sld.Shapes
+        If shp.HasTextFrame Then
+            If shp.TextFrame.HasText Then
+
+               Set textLoc = shp.TextFrame.TextRange.Find(findText)
+               Do While Not (textLoc Is Nothing)
+                If Not (textLoc Is Nothing) Then
+                 textLoc.Text = replaceText
+
+                End If
+                Set textLoc = shp.TextFrame.TextRange.Find(findText)
+               Loop
+            End If
+        End If
+    Next shp
+    End Sub
+
+    '''
+    wordModule.CodeModule.AddFromString(macro)
+    deck.Application.Run("Multi_FindReplace", "")
+
     deck.SaveAs(dst, 32)
     deck.Close()
     powerpoint.Quit()
@@ -400,7 +454,7 @@ def convert_to_pdf(src, dst):
     return True
 
 
-def replace_ppxt(path, cp_name, position, industry):
+def replace_ppxt(path, new_path, cp_name, position, industry):
     ppt = Presentation(path)
     for slide in ppt.slides:
         for shape in slide.shapes:
@@ -408,7 +462,7 @@ def replace_ppxt(path, cp_name, position, industry):
                 a = shape.text = shape.text.replace('[Company]', cp_name)
                 b = shape.text = a.replace('[Position]', position)
                 c = shape.text = b.replace('[Industry]', industry)
-    ppt.save(path)
+    ppt.save(new_path)
     return True
 
 
@@ -468,10 +522,10 @@ if __name__ == '__main__':
             if "$" in i:
                 continue
             copy2(i, temp_dir)
-
+        #
         new_dir = os.path.join(BASE_DIR, "src", "Output", cp_name, position,
                                "Temp Files")
-
+        #
         for i in onlyfolder[0:-1]:
             copy_tree(os.path.join(templates, i), os.path.join(temp_dir, i))
         word = onlyfolder[-1]
@@ -561,31 +615,28 @@ if __name__ == '__main__':
             study_list, os.path.join(temp_dir, "sys_temp_dir"), cp_name, position, industry, logo)
         _stu = os.path.join(
             temp_dir, f"Study Guide–{cp_name} {position} Interview preparation.docx")
+
+        print("===== Replacing words...")
+        # for i in list_file:
+        #     replace_word(i, cp_name, position, industry, logo)
         print(
             f"===== Merging Templates into: Study Guide–{cp_name} {position} Interview preparation.docx")
-        print("===== Replacing words...")
-        for i in list_file:
-            replace_word(i, cp_name, position, industry, logo)
+        # list_files_in_temp = merged_by_macro(os.path.join(
+        # temp_dir, "sys_temp_dir", "copy_template.docx"), merged_study)
 
-        list_files_in_temp = merged_by_macro(os.path.join(
-            temp_dir, "sys_temp_dir", "copy_template.docx"), merged_study)
-
-        # replace_word(os.path.join(new_dir, _stu),
-        # cp_name, position, industry, logo)
-        # update_toc(_stu)
         print(
             f"===== Creating PDF: Study Guide–{cp_name} {position} Interview preparation.pdf")
 
-        convert_to_pdf(merged_study, merged_study_pdf)
+        # convert_to_pdf(merged_study, merged_study_pdf)
 
         pathlib.Path(os.path.join(temp_dir, "sys_temp_dir")
                      ).mkdir(parents=True, exist_ok=True)
 
-        copy2(merged_study_pdf, os.path.join(
-            parent_dir, "Course", f'Study Guide–{cp_name} {position} Interview preparation.pdf'))
-
-        copy2(merged_study_pdf, os.path.join(
-            parent_dir, "Study Guide", f'Study Guide–{cp_name} {position} Interview preparation.pdf'))
+        # copy2(merged_study_pdf, os.path.join(
+        #     parent_dir, "Course", f'Study Guide–{cp_name} {position} Interview preparation.pdf'))
+        #
+        # copy2(merged_study_pdf, os.path.join(
+        #     parent_dir, "Study Guide", f'Study Guide–{cp_name} {position} Interview preparation.pdf'))
 
         workbook_file.insert(1, f"{interviewprocess}.docx")
         workbook_file.insert(3, f"{industry}.docx")
@@ -596,24 +647,21 @@ if __name__ == '__main__':
             workbook_list.append(os.path.join(new_dir, i))
         _work = os.path.join(
             temp_dir, f"Workbook–{cp_name} {position} Interview preparation.docx")
+
+        print("===== Replacing words...")
+        # for i in list_file:
+        #     replace_word(i, cp_name, position, industry, logo)
         print(
             f"===== Merging Templates into: Workbook–{cp_name} {position} Interview preparation.docx")
-        print("===== Replacing words...")
-        for i in list_file:
-            replace_word(i, cp_name, position, industry, logo)
+        # list_files_in_temp = merged_by_macro(os.path.join(
+        # temp_dir, "sys_temp_dir", "copy_template.docx"), merged_workbook)
 
-        list_files_in_temp = merged_by_macro(os.path.join(
-            temp_dir, "sys_temp_dir", "copy_template.docx"), merged_workbook)
-
-        # replace_word(os.path.join(new_dir, _work),
-        #              cp_name, position, industry, logo)
-        # update_toc(_work)
         print(
             f"===== Creating PDF: Workbook–{cp_name} {position} Interview preparation.pdf")
-        convert_to_pdf(merged_workbook, merged_workbook_pdf)
+        # convert_to_pdf(merged_workbook, merged_workbook_pdf)
 
-        copy2(merged_workbook_pdf, os.path.join(
-            parent_dir, "Course", f'Workbook–{cp_name} {position} Interview preparation.pdf'))
+        # copy2(merged_workbook_pdf, os.path.join(
+        #     parent_dir, "Course", f'Workbook–{cp_name} {position} Interview preparation.pdf'))
         for i in onlyfiles:
             if "pdf" in i:
                 if f"Interview preparation" in i:
@@ -621,18 +669,24 @@ if __name__ == '__main__':
                 else:
                     os.remove(os.path.join(new_dir, i))
 
-        # print("===== Converting Powerpoints to pdf")
-        # pptx_file = os.path.join(
-        #     new_dir, "Course", "Slides - Coursetake Interview Preparation.pptx")
-        # pptx_to = os.path.join(
-        #     new_dir, "Course", f"Slides – {cp_name} {position} Interview preparation.pptx")
+        print("===== Converting Powerpoints to pdf")
+        pptx_file = os.path.join(
+            new_dir, "Course", "Slides - Coursetake Interview Preparation.pptx")
+        pptx_to = os.path.join(
+            new_dir, "Course", f"Slides – {cp_name} {position} Interview preparation.pptx")
         # os.rename(pptx_file, pptx_to)
-        #
+
         # replace_ppxt(pptx_to, cp_name, position, industry)
-        #
-        # convert_pptx_to_pdf(pptx_to, os.path.join(
-        #     parent_dir, "Course", f"Slides – {cp_name} {position} Interview preparation.pdf"))
-        #
+        print(pptx_to)
+        # replace_and_convert_pptx_to_pdf(pptx_to,
+        #                                 os.path.join(
+        #                                     parent_dir,
+        #                                     "Course",
+        #                                     f"Slides – {cp_name} {position} Interview preparation.pdf"
+        #                                 ),
+        #                                 [cp_name, position, industry]
+        #                                 )
+
         src_course = os.path.join(new_dir, "Course")
         src_file_course = [f for f in listdir(
             src_course) if isfile(join(src_course, f))]
@@ -682,7 +736,7 @@ if __name__ == '__main__':
         print(f"========== Uploaded! \n")
 
         print(
-            "========== Create Book's landing page for {cp_name} {position} ")
+            f"========== Create Book's landing page for {cp_name} {position} ")
 
         title = f"{cp_name} {position} Interview Preparation Study Guide"
         _data = add_product(cp_name, position, industry,
