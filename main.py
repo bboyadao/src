@@ -649,6 +649,8 @@ if __name__ == '__main__':
             temp_dir, f"Workbook–{cp_name} {position} Interview preparation.docx")
 
         print("===== Replacing words...")
+        (list_temp_dir, list_file) = create_sys_temp_dir(
+            workbook_list, os.path.join(temp_dir, "sys_temp_dir"), cp_name, position, industry, logo)
         # for i in list_file:
         #     replace_word(i, cp_name, position, industry, logo)
         print(
