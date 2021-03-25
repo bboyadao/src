@@ -9,7 +9,7 @@ pyactiveresource==2.1.2
 PyPDF2==1.26.0
 python-docx==0.8.10
 python-pptx==0.6.17
-PyYAML==5.1
+PyYAML==5.4
 requests==2.21.0
 selenium==3.141.0
 ShopifyAPI==5.0.1
