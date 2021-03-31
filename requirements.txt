@@ -3,7 +3,7 @@ chardet==3.0.4
 comtypes==1.1.7
 docxcompose==1.0.0a16
 idna==2.8
-lxml==4.3.3
+lxml==4.6.3
 Pillow==6.0.0
 pyactiveresource==2.1.2
 PyPDF2==1.26.0
