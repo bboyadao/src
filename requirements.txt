@@ -6,7 +6,7 @@ idna==2.8
 lxml==4.3.3
 Pillow==6.0.0
 pyactiveresource==2.1.2
-PyPDF2==1.26.0
+PyPDF2==1.27.5
 python-docx==0.8.10
 python-pptx==0.6.17
 PyYAML==5.1
